@@ -10,7 +10,7 @@ import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class AppTest {
+public class RWTest {
     Random random = new Random();
 
     @Test
