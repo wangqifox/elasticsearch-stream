@@ -1,10 +1,12 @@
 package love.wangqi;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import love.wangqi.stream.InputStreamStreamInput;
 import love.wangqi.stream.OutputStreamStreamOutput;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Random;
@@ -69,5 +71,44 @@ public class PerformanceTest {
         System.out.println(size);
 
         byteArrayOutputStream.close();
+    }
+
+    @Test
+    public void readStreamFromBytes() throws IOException {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        OutputStreamStreamOutput outputStreamStreamOutput = new OutputStreamStreamOutput(byteArrayOutputStream);
+
+        user.writeTo(outputStreamStreamOutput);
+        outputStreamStreamOutput.flush();
+        outputStreamStreamOutput.close();
+
+        byte[] bytes = byteArrayOutputStream.toByteArray();
+
+        long start = System.currentTimeMillis();
+        for (int i = 0; i < loop; i++) {
+            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes);
+            InputStreamStreamInput inputStreamStreamInput = new InputStreamStreamInput(byteArrayInputStream);
+            User newUser = new User();
+            newUser.readFrom(inputStreamStreamInput);
+        }
+        long end = System.currentTimeMillis();
+        System.out.println("cost: " + (end - start));
+    }
+
+    @Test
+    public void readJsonFromBytes() throws IOException {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.writeValue(byteArrayOutputStream, user);
+
+        byte[] bytes = byteArrayOutputStream.toByteArray();
+
+        long start = System.currentTimeMillis();
+        for (int i = 0; i < loop; i++) {
+            User newUser = mapper.readValue(bytes, User.class);
+        }
+        long end = System.currentTimeMillis();
+        System.out.println("cost: " + (end - start));
     }
 }
